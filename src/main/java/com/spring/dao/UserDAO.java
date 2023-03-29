@@ -1,41 +1,39 @@
 package com.spring.dao;
 
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
-import com.spring.model.AdminTK;
 import com.spring.model.AppUser;
+import com.spring.model.Cost;
 import com.spring.model.CustomUser;
-import com.spring.model.Review;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by egulocak on 8.04.2020.
+ * Created by oguzhanaslan on 7.09.2020.
  */
 public interface UserDAO {
 
-    AppUser insertUser(AppUser user); //Bütün Kullanıcı tiplerini kaydeden fonksiyon;
-    boolean checkStandardCredentials(String userEmail, String password);
-    boolean checkGoogleCredentials(AppUser user);
-    CustomUser findUserByEmail(String userEmail,String changestatus);
-    List<Object> listAllUsers();//Bütün kullanıcıları listeler
-//    AppUser updateUser(AppUser user); //Kullanıcı günceller
+    void insertUser(AppUser user);
+    List<Object> listAllUsers();
     Boolean isUserExist(String email);
-    Boolean isUserActive(String email);
-    Boolean checkUserCode(String email,long code);
+    List<AppUser>  checkStandardCredentials(String userEmail,String password);
+    Boolean checkUserCode(String email,String code);
     AppUser updateUserStatus(String email);
+    Boolean isUserActive(String email);
     String changeusername(String email,String userName);
-    void changeUserCode(String email,long code);
-    List<Review> getReview(String email);
-    Boolean isadmin(AdminTK adminTK);
-    List<Object> getuserreviews(String email);
-    Long getreviewcount(String email,String password);
-    String changpassword(String email,String password,String newpw);
+    Long getCostcount(String email,String password);
+    String changepassword(String email,String password,String newpw);
+    boolean changeUserCode(String email, long code);
+    CustomUser findUserByEmail(String email);
+    Boolean isUser(AppUser user);
+    List<Cost> getCost(String email);
+    List<Object> getUsercosts(String email);
+    List<Object> getCategorizecosts(String email,String category);
     List<Object> getcategoryinfo(String email);
-    List<Object> getcategorizedreviews(String email,String category);
-
-
-
+    Boolean insertpwcode(String email,String code);
+    Boolean setpassword(String email,String newpw,String token);
+    List<Object> findAllgarden(int userID);
+    List<Object> finaAllproduct(int userID);
+    List<Object> findAllcost(int userID);
+    Boolean newpassword(String email,String password);
+    List<Object>userinfo(int userID);
 
 }

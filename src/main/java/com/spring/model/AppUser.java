@@ -1,62 +1,56 @@
 package com.spring.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import lombok.*;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
- * Created by bdurmusoglu on 6.04.2020.
+ * Created by oguzhanaslan on 4.09.2020.
  */
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Setter
 @Getter
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class AppUser   {
+@Table
+public class AppUser {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long userID;
-    //cinli dosya comment satırı
-    @Column
-    private String userName;
+    @GeneratedValue
+    private int userID;
 
-    @Column
-    private String userSurname;
+    @Column(nullable = false)
+    private String userName;
 
     @Column(unique = true, nullable = false)
     private String userEmail;
 
-    @Column(length = 30)
+    @Column(nullable = false)
     private String userPassword;
 
-    private String userToken;
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private Set<Garden> garden;
 
-    @Column(nullable = false)
-    private String userType;
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private Set<Cost> cost;
 
-    @Lob
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private Set<GardenProduct> gardenProduct;
+
+
+
     @Column
-    private byte[] profilImageID;
+    private String resetCode;
 
-    @Column
-    private String status;
 
-    @Column
-    private long code;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
-    private Set<Review> review;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true)
-    private Set<Report> reports;
+
 
 }

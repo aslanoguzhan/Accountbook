@@ -1,11 +1,11 @@
-package com.spring.feedbacks;
+package com.spring.feedback;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.stereotype.Repository;
 
 /**
- * Created by egulocak on 17.04.2020.
+ * Created by oguzhanaslan on 07.09.2020.
  */
 @Getter
 @Setter
@@ -13,4 +13,7 @@ import org.springframework.stereotype.Repository;
 public class Error {
     private String feedback;
     private int code;
+
+
+
 }

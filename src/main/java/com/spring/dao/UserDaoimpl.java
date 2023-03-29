@@ -1,131 +1,56 @@
 package com.spring.dao;
 
-import com.spring.model.AdminTK;
 import com.spring.model.AppUser;
+import com.spring.model.Cost;
 import com.spring.model.CustomUser;
-import com.spring.model.Review;
-import com.spring.token.Validation;
 import lombok.Setter;
-//import lombok.launch.PatchFixesHider;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by egulocak on 8.04.2020.
+ * Created by oguzhanaslan on 7.09.2020.
  */
 
-@Transactional
 @Repository
-public class UserDaoimpl implements UserDAO {
+public class UserDAOImpl implements UserDAO {
+
 
     @Setter
     @Autowired
     SessionFactory sessionFactory;
 
-    @Autowired
-    Validation validation;
-
     @Override
-    public AppUser insertUser(AppUser user) {
-
+    public void insertUser(AppUser user) {
 
         try {
-            sessionFactory.getCurrentSession().save(user);
+            Session session = sessionFactory.openSession();
+            Transaction tx = session.beginTransaction();
+            session.save(user);
+            session.getTransaction().commit();
 
-            return user;
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            return null;
-
 
         }
-
-    }
-
-
-    @Override
-    public boolean checkStandardCredentials(String userEmail, String password) {
-
-
-        Query query = sessionFactory.getCurrentSession().
-                createQuery("from AppUser where userEmail=:userEmail and userPassword =: userPassword ");
-        query.setParameter("userEmail", userEmail);
-        query.setParameter("userPassword", password);
-
-
-
-        if (query.uniqueResult() != null) {
-            return true;
-        } else
-            return false;
-
-
-        //ToDo hangisi yanlıssa onu de bildiren bir  query vs yazılabilir.
-
-
     }
 
     @Override
-    public boolean checkGoogleCredentials(AppUser user) {
-        return false;
-    }
-
-    @Override
-    public CustomUser findUserByEmail(String userEmail,String changestatus) {
-        try{
-            Session session = sessionFactory.openSession();
-
-
-            CustomUser cUser = new CustomUser();
-            Query query = sessionFactory.getCurrentSession()
-                    .createQuery("from AppUser where userEmail =: userEmail");
-            query.setParameter("userEmail", userEmail);
-
-            AppUser aUser =  (AppUser) query.uniqueResult();
-            session.close();
-            cUser.setUserID(aUser.getUserID());
-            cUser.setUserEmail(aUser.getUserEmail());
-            cUser.setUserName(aUser.getUserName());
-            cUser.setUserSurname(aUser.getUserSurname());
-            cUser.setProfilImageID(aUser.getProfilImageID());
-
-
-            return cUser;
-        }
-
-        catch(Exception e)
-        {
-            System.out.println(e.getMessage() +"EFEE");
-            return null;
-        }
-
-
-    }
-
-
-
-    @Override
-    public List<Object> listAllUsers( ) {
+    public List<Object> listAllUsers() {
         try {
             Session session = sessionFactory.openSession();
             Transaction transaction = session.beginTransaction();
-                Query query = session.createQuery("select new Map(a.userID as userID ,a.userName as userName,a.userSurname as userSurname," +
-                        "a.userEmail as userEmail,a.profilImageID as profilImageID,a.userToken as userToken," +
-                        "a.userType as userType,a.status as status) from AppUser a");
-                List<Object> userList = query.list();
-                transaction.commit();
-                return userList;
+            Query query = session.createQuery("select new Map(u.userID as userID ,u.userName as userName," +
+                    "u.userEmail as userEmail,u.status as status) from User u");
+            List<Object> userList = query.list();
+            transaction.commit();
+            return userList;
         } catch (Exception e) {
             System.out.println(e.getMessage());
 
@@ -133,40 +58,12 @@ public class UserDaoimpl implements UserDAO {
         }
     }
 
-//    @Override
-//    public AppUser updateUser(AppUser user) {
-//        //Kullanıcının update olacak hali geliyor saedece id aynı
-//
-//
-//        try {
-//            Session session = sessionFactory.openSession();
-//            Transaction tx = session.beginTransaction();
-//
-//            AppUser upUser = (AppUser) session.get(AppUser.class, user.getUserID()); //idyi burda yakalayıp bu idde klon kullanıcı oluşuyor.
-//            //neler değişecekse ilgili şeyler altta yapılır.
-//            upUser.setUserPassword(user.getUserPassword());
-//            upUser.setUserName(user.getUserName());
-//            upUser.setUserSurname(user.getUserSurname());
-//            upUser.setUserEmail(user.getUserEmail());
-//
-//            //update işlemi başlar
-//            session.update(upUser);
-//            tx.commit();
-//            session.close();
-//            return upUser;
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//            return null;
-//        }
-//
-//
-//    }
-
     @Override
     public Boolean isUserExist(String email) {
+        Session session = sessionFactory.openSession();
 
         try {
-            Query query = sessionFactory.getCurrentSession().createQuery("from AppUser where userEmail=:email");
+            Query query = session.createQuery("select a.userID from AppUser as a where a.userEmail=:email");
             query.setParameter("email", email);
             if (query.getResultList().size() > 0)
                 return true;
@@ -177,61 +74,55 @@ public class UserDaoimpl implements UserDAO {
             System.out.println(e.getMessage());
             return null;
         }
-
-
     }
 
     @Override
-    public Boolean isUserActive(String email) {
+    public List<AppUser>  checkStandardCredentials(String userEmail, String password) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Query query = session.createQuery("select new Map( a.userID as userID,a.userName as userName,a.userEmail as userEmail) from AppUser as  a " +
+                    "where a.userEmail=:userEmail and a.userPassword =: userPassword ");
+            query.setParameter("userEmail", userEmail);
+            query.setParameter("userPassword", password);
 
+            List costlist = query.getResultList();
+            transaction.commit();
+            return costlist;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
 
-        Query query = sessionFactory.getCurrentSession().createQuery("from AppUser where userEmail =: userEmail and status =: status");
-        query.setParameter("userEmail",email);
-        query.setParameter("status","active");
-
-        if(query.uniqueResult() != null)
-            return true;
-        else
-            return false;
-
-
-    }
-
-
-    @Override
-    public Boolean checkUserCode(String email, long code) {
-        Query query = sessionFactory.getCurrentSession()
-                .createQuery("from AppUser  where userEmail =: userEmail and code=:code ");
-        query.setParameter("userEmail",email);
-        query.setParameter("code",code);
-        if(query.uniqueResult()!=null){
-            changeUserCode(email,code);
-            return true;
+            return null;
         }
 
-        else
-            return false;
     }
 
+    @Override
+    public Boolean checkUserCode(String email, String code) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Query query = session.createSQLQuery("select a.resetCode from AppUser a where a.userEmail=:email and a.resetCode=:code ");
+        query.setParameter("email", email);
+        query.setParameter("code", code);
+        transaction.commit();
+        if (query.uniqueResult() != null) {
+            return true;
+        } else
+            return false;
+    }
 
     @Override
     public AppUser updateUserStatus(String email) {
-
         try {
             Session session = sessionFactory.openSession();
             Transaction tx = session.beginTransaction();
             Query query = sessionFactory.getCurrentSession().createQuery("from AppUser where userEmail =: userEmail");
-            query.setParameter("userEmail",email);
+            query.setParameter("userEmail", email);
 
 
             AppUser tempUser = (AppUser) query.uniqueResult();
 
             AppUser upUser = (AppUser) session.get(AppUser.class, tempUser.getUserID());
-            upUser.setStatus("active");
-            //idyi burda yakalayıp bu idde klon kullanıcı oluşuyor.
-            //neler değişecekse ilgili şeyler altta yapılır.
-
-            //update işlemi başlar
             session.update(upUser);
             tx.commit();
             session.close();
@@ -244,196 +135,81 @@ public class UserDaoimpl implements UserDAO {
     }
 
     @Override
-    public String changeusername(String email, String userName) {
+    public Boolean isUserActive(String email) {
+        Session session = sessionFactory.openSession();
+        Transaction tx = session.beginTransaction();
 
-        try{
+        Query query = sessionFactory.getCurrentSession().createQuery("select a.userEmail from AppUser as a  where userEmail =: email");
+        query.setParameter("userEmail", email);
+        session.close();
+        tx.commit();
+        if (query.uniqueResult() != null)
+            return true;
+        else
+            return false;
+    }
+
+    @Override
+    public String changeusername(String email, String userName) {
+        try {
             Session session = sessionFactory.openSession();
             Transaction transaction = session.beginTransaction();
             Query query = sessionFactory.getCurrentSession().createQuery("from AppUser   where userEmail =:email");
-            query.setParameter("email",email);
-
-
-
-                AppUser tempUser = (AppUser) query.uniqueResult();
-
-                AppUser upUser = (AppUser) session.get(AppUser.class, tempUser.getUserID());
-                upUser.setUserName(userName);
-
-
-                //update işlemi başlar
-                session.update(upUser);
-                transaction.commit();
-                session.close();
-                return "ok";
-
-        }
-        catch(Exception e){
-
-            System.out.println("HATAAA:"+e.getMessage());
-            return null;
-        }
-
-
-    }
-
-
-    @Override
-    public void changeUserCode(String email, long code) {
-
-        try {
-            Session session = sessionFactory.openSession();
-            Transaction tx = session.beginTransaction();
-            Query query = sessionFactory.getCurrentSession().createQuery("from AppUser where userEmail =: userEmail and code=:code");
-            query.setParameter("userEmail",email);
-            query.setParameter("code",code);
+            query.setParameter("email", email);
 
 
             AppUser tempUser = (AppUser) query.uniqueResult();
 
             AppUser upUser = (AppUser) session.get(AppUser.class, tempUser.getUserID());
-            upUser.setCode(0);
-            //idyi burda yakalayıp bu idde klon kullanıcı oluşuyor.
-            //neler değişecekse ilgili şeyler altta yapılır.
+            upUser.setUserName(userName);
 
-            //update işlemi başlar
+
             session.update(upUser);
-            tx.commit();
+            transaction.commit();
             session.close();
+            return "ok";
 
         } catch (Exception e) {
-            System.out.println(e.getMessage());
 
-        }
-    }
-
-    @Override
-    public List<Review> getReview(String email) {
-        Session session = sessionFactory.openSession();
-        CustomUser  cUser = new CustomUser();
-        cUser = findUserByEmail(email,"nochange");
-        Query query = session.createQuery("select new map(r.id as id,r.question1 as q1,r.question2 as q2,r.question3 as q3,r.question4 as q4,r.question5 as q5,r.question6 as q6," +
-                "r.question7 as q7,r.question8 as a8,r.question9 as q9,r.average as average ,r.hygieneAverage as hygieneavg,r.friendlyAverage  as friendlyavg )from Review r where user.userEmail =:email  ");
-        query.setParameter("email",email);
-        List<Review> reviewList = query.list();
-
-        return reviewList;
-
-
-
-
-    }
-
-    @Override
-    public Boolean isadmin(AdminTK adminTK) {
-        try{
-
-            int status  = 0;
-            Session session = sessionFactory.openSession();
-            Transaction tx = session.beginTransaction();
-
-            Query isAdmin = sessionFactory.getCurrentSession().createQuery("from AdminTK  where uniqueID  =: uniqueID and adminIDName =:" +
-                    " name and adminPW =: pw and adminStatus =: status " );
-            isAdmin.setParameter("uniqueID",adminTK.getUniqueID());
-            isAdmin.setParameter("name",adminTK.getAdminIDName());
-            isAdmin.setParameter("pw",adminTK.getAdminPW());
-            isAdmin.setParameter("status",adminTK.getAdminStatus());
-            if(isAdmin.uniqueResult() != null)
-                return true;
-            else
-                return false;
-        }
-
-        catch(Exception e)
-        {
-
-            System.out.println("HATA: "+e.getMessage());
+            System.out.println("HATAAA:" + e.getMessage());
             return null;
         }
-
-
     }
 
     @Override
-    public List<Object> getuserreviews(String email) {
-
-        Session session = sessionFactory.openSession();
-
-        Transaction transaction = session.beginTransaction();
-
-        Query query = session.createQuery("select a.userID as userID ,a.userName as userName,a.userSurname as userSurname," +
-                "a.userEmail as userEmail,a.profilImageID as profilImageID,a.userToken as userToken," +
-                "a.userType as userType,a.status as status from AppUser a where userEmail =: email");
-
-        query.setParameter("email",email);
-        if(query.uniqueResult() !=null){
-            CustomUser cUser = findUserByEmail(email,"nochange");
-            Query query3 = session.createQuery("select new Map(r.average as average,r.reviewDate as date,r.restaurant.restaurantID as restaurantID,r.id as ID,r.hygieneAverage as hygieneAverage,r.friendlyAverage as friendlyAverage" +
-                    "  ,r.restaurant.restaurantName as restaurantName  ,r.restaurant.restaurantImageUrl as restaurantImage) from Review  r where user.userID =: id ORDER BY  reviewDate ASC ");
-            query3.setParameter("id",cUser.getUserID());
-
-
-            System.out.println(cUser.getUserID());
-
-
-
-//        query2.setParameter("email",email);
-            List<Object> reviewList = query3.list();
-            transaction.commit();
-//        <ListAppUser aUser =  (AppUser) query2.uniqueResult();
-
-            return reviewList;
-        }
-
-        //TODO:BURADA DAHA SONRA İYİLEŞTİRME YAPICAM.
-        else{
-            return null;
-
-        }
-
-    }
-
-    @Override
-    public Long getreviewcount(String email,String password) {
+    public Long getCostcount(String email, String password) {
         Session session = sessionFactory.openSession();
         Transaction transaction = session.beginTransaction();
-        Query query = session.createQuery("select COUNT(*)  from Review where user.userEmail =: email  ");
-        query.setParameter("email",email);
+        Query query = session.createQuery("select COUNT(*)  from Cost where user.userEmail =: email  ");
+        query.setParameter("email", email);
 
 
         return (Long) query.getSingleResult();
-
-
-
-
     }
 
-
     @Override
-    public String changpassword(String email,String password,String newpw) {
+    public String changepassword(String email, String password, String newpw) {
         try {
             Session session = sessionFactory.openSession();
             Transaction tx = session.beginTransaction();
-            Query query = sessionFactory.getCurrentSession().createQuery("from AppUser where userEmail =: userEmail and userPassword=: password ");
-            query.setParameter("userEmail",email);
-            query.setParameter("password",password);
+            Query query = sessionFactory.getCurrentSession().createQuery("select a.userID from AppUser as a where a.userEmail =: userEmail and a.userPassword=: password  ");
+            query.setParameter("userEmail", email);
+            query.setParameter("password", password);
+            query.setParameter("newpw", newpw);
 
 
-            if(query.uniqueResult() != null)
-            {
+            if (query.uniqueResult() != null) {
                 AppUser tempUser = (AppUser) query.uniqueResult();
 
                 AppUser upUser = (AppUser) session.get(AppUser.class, tempUser.getUserID());
                 upUser.setUserPassword(newpw);
 
 
-                //update işlemi başlar
                 session.update(upUser);
                 tx.commit();
                 session.close();
                 return "ok";
-            }
-
-            else {
+            } else {
                 System.out.println("NO UNİQUE RESULT");
                 return "User does not Exist!!!";
 
@@ -447,101 +223,283 @@ public class UserDaoimpl implements UserDAO {
     }
 
     @Override
-    public List<Object> getcategoryinfo(String email) {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = session.beginTransaction();
-
-        Query query3 = session.createQuery("select new Map(count(r2.category) as count,r2.category as category) from Review r,Restaurant r2 , AppUser  a where r.user.userID = a.userID and " +
-                "r.restaurant.restaurantID = r2.restaurantID and a.userEmail =:email group by r2.category");
-        query3.setParameter("email",email);
-
-
-        List<Object> reviewList = query3.list();
-        transaction.commit();
-        return reviewList;
+    public boolean changeUserCode(String email, long code) {
+        Query query = sessionFactory.getCurrentSession()
+                .createQuery("from AppUser  where userEmail =: userEmail and code=:code ");
+        query.setParameter("userEmail", email);
+        query.setParameter("code", code);
+        if (query.uniqueResult() != null) {
+            changeUserCode(email, code);
+            return true;
+        } else
+            return false;
     }
 
     @Override
-    public List<Object> getcategorizedreviews(String email, String category) {
+    public CustomUser findUserByEmail(String userEmail) {
+        try {
+            Session session = sessionFactory.openSession();
+
+
+            CustomUser cUser = new CustomUser();
+            Query query = sessionFactory.getCurrentSession()
+                    .createQuery("from AppUser where userEmail =: userEmail");
+            query.setParameter("userEmail", userEmail);
+
+            AppUser aUser = (AppUser) query.uniqueResult();
+            session.close();
+            cUser.setUserID(aUser.getUserID());
+            cUser.setUserEmail(aUser.getUserEmail());
+            cUser.setUserName(aUser.getUserName());
+
+
+            return cUser;
+        } catch (Exception e) {
+            System.out.println(e.getMessage() + "Email");
+            return null;
+        }
+
+
+    }
+
+    @Override
+    public Boolean isUser(AppUser user) {
+        return null;
+    }
+
+    @Override
+    public List<Cost> getCost(String email) {
+        Session session = sessionFactory.openSession();
+        CustomUser cUser = new CustomUser();
+        cUser = findUserByEmail(email);
+        Query query = session.createQuery("select new map(c.costID as costID,c.cost as cost )from Cost c where user.userEmail =:email  ");
+
+        query.setParameter("email", email);
+        List<Cost> costList = query.list();
+
+        return costList;
+    }
+
+    @Override
+    public List<Object> getUsercosts(String email) {
+
         Session session = sessionFactory.openSession();
 
         Transaction transaction = session.beginTransaction();
 
         Query query = session.createQuery("select a.userID as userID ,a.userName as userName,a.userSurname as userSurname," +
-                "a.userEmail as userEmail,a.profilImageID as profilImageID,a.userToken as userToken," +
-                "a.userType as userType,a.status as status from AppUser a where userEmail =: email");
-        CustomUser cUser = findUserByEmail(email,"nochange");
-        System.out.println(cUser.getUserID());
+                "a.userEmail as userEmail,a.userToken as userToken," +
+                "a.status as status from AppUser a where userEmail =: email");
 
-        //TODO:BURADA DAHA SONRA İYİLEŞTİRME YAPICAM.
-        if(category.equals("Benzin İstasyonu") || category.equals("AVM") || category.equals("Otel")){
+        query.setParameter("email", email);
+        if (query.uniqueResult() != null) {
+            CustomUser cUser = findUserByEmail(email);
+            Query query3 = session.createQuery("select new Map(c.cost as cost,c.costID as costID," +
+                    "c.costDate as date) from Cost  c where user.userID =: id ORDER BY  costDate ASC ");
+            query3.setParameter("id", cUser.getUserID());
 
-            Query general = session.createQuery("select new Map(r.average as average,r.restaurant.restaurantID as restaurantID,r.id as ID,r.reviewDate as date,r.hygieneAverage as hygieneAverage,r.friendlyAverage as friendlyAverage" +
-                    "  ,r.restaurant.restaurantName as restaurantName  ,r.restaurant.restaurantImageUrl as restaurantImage,r.restaurant.category as restaurantCategory) from Review  r where user.userID =: id and r.restaurant.category =: category ORDER BY  reviewDate ASC");
-            general.setParameter("id",cUser.getUserID());
-            general.setParameter("category",category);
-            List<Object> reviewList = general.list();
+
+            System.out.println(cUser.getUserID());
+
+
+            List<Object> costlist = query3.list();
             transaction.commit();
-            return reviewList;
 
-            //General querysi gelen categoryi direk işleyerek sorgu atar(Alt kategorisi olmayan kategoriler için)
-            //Benzinlik,otel,AVM kategorileri için
+
+            return costlist;
+        } else {
+            return null;
 
         }
-
-        else if(category.equals("Restaurant")){
-            Query restaurant = session.createQuery("select new Map(r.average as average,r.reviewDate as date,r.restaurant.restaurantID as restaurantID,r.id as ID,r.hygieneAverage as hygieneAverage,r.friendlyAverage as friendlyAverage" +
-                    "  ,r.restaurant.restaurantName as restaurantName  ,r.restaurant.restaurantImageUrl as restaurantImage,r.restaurant.category as restaurantCategory) from Review  r where user.userID =: id and r.restaurant.category ='Kafe' " +
-                    "or r.restaurant.category ='Türk Mutfağı' or r.restaurant.category ='Tatlı' or r.restaurant.category ='Bar&Pubs' or r.restaurant.category ='Dünya Mutfağı' ORDER BY  reviewDate ASC");
-            restaurant.setParameter("id",cUser.getUserID());
-            List<Object> reviewList = restaurant.list();
-            transaction.commit();
-            return reviewList;
-        }
-        else if(category.equals("Halka Açık")){
-            Query public_ = session.createQuery("select new Map(r.average as average,r.reviewDate as date,r.restaurant.restaurantID as restaurantID,r.id  as ID,r.hygieneAverage as hygieneAverage,r.friendlyAverage as friendlyAverage" +
-                    "  ,r.restaurant.restaurantName as restaurantName  ,r.restaurant.restaurantImageUrl as restaurantImage,r.restaurant.category as restaurantCategory) from Review  r where user.userID =: id and r.restaurant.category ='Spor Salonu' " +
-                    "or r.restaurant.category ='sinema' or r.restaurant.category ='Eğlence Merkezi' ORDER BY  reviewDate ASC");
-            public_.setParameter("id",cUser.getUserID());
-            List<Object> reviewList = public_.list();
-            transaction.commit();
-            return reviewList;
-
-        }
-
-        else{
-            Query other = session.createQuery("select new Map(r.average as average,r.reviewDate as date,r.id as ID,r.restaurant.restaurantID as restaurantID,r.hygieneAverage as hygieneAverage,r.friendlyAverage as friendlyAverage" +
-                    "  ,r.restaurant.restaurantName as restaurantName  ,r.restaurant.restaurantImageUrl as restaurantImage,r.restaurant.category as restaurantCategory) from Review  r where user.userID =: id and r.restaurant.category <> 'Kafe'" +
-                    "and r.restaurant.category <> 'Türk Mutfağı' and r.restaurant.category <> 'Bar&Pubs' and r.restaurant.category <> 'Dünya Mutfağı'" +
-                    "and r.restaurant.category <> 'Otel' and r.restaurant.category <> 'Benzin İstasyonu' and r.restaurant.category <> 'Spor Salonu'" +
-                    "and r.restaurant.category <> 'AVM' and r.restaurant.category <> 'sinema' and r.restaurant.category <> 'Eğlence Merkezi' ORDER BY  reviewDate ASC ");
-            other.setParameter("id",cUser.getUserID());
-            List<Object> reviewList = other.list();
-            transaction.commit();
-            return reviewList;
-        }
-
-
-
-
-
-
-
-//        query2.setParameter("email",email);
-//        <ListAppUser aUser =  (AppUser) query2.uniqueResult();
 
     }
-//
-//    public String updatetoken(AppUser appUser){
-//        Session session = sessionFactory.getCurrentSession();
-//        String newtoken = validation.generatetoken();
-//
-//        appUser.setUserToken(newtoken);
-//
-//        session.update(appUser);
-//
-//        return newtoken;
-//
-//
-//    }
+
+    @Override
+    public List<Object> getCategorizecosts(String userEmail, String category) {
+        Session session = sessionFactory.openSession();
+
+        Transaction transaction = session.beginTransaction();
+
+        Query query = session.createQuery("select a.userID as userID ,a.userName as userName," +
+                "a.userEmail as userEmail,a.userToken as userToken," +
+                "a.userType as userType,a.status as status from User a where userEmail =: email");
+        CustomUser cUser = findUserByEmail(userEmail);
+        System.out.println(cUser.getUserID());
+
+
+        if (category.equals("Makina") || category.equals("Tohum") || category.equals("Yakıt") || category.equals("Organik Gübre")
+                || category.equals("Kimyasal Gübre") || category.equals("İlaç") || category.equals("İş Gücü") || category.equals("Sulama")) {
+
+            Query general = session.createQuery("select new Map(c.cost as cost,c.costID as costID,c.costDate as date) from Cost  c where user.userID =: id  ORDER BY  costDate ASC");
+            general.setParameter("id", cUser.getUserID());
+            List<Object> costlist = general.list();
+            transaction.commit();
+            return costlist;
+
+
+        } else {
+            Query cost = session.createQuery("select new Map(c.cost as cost,c.costID as costID,c.costDate as date) from Cost  c where user.userID =: id and c.cost.category ='Sulama' " +
+                    "or c.cost.category ='Makina' or c.cost.category ='Tohum' or  c.cost.category ='Yakıt' or c.cost.category ='Organik Gübre'or c.cost.category ='Kimyasal Gübre'or c.cost.category ='İlaç'or c.cost.category ='İş Gücü' ORDER BY  costDate ASC");
+            cost.setParameter("id", cUser.getUserID());
+            List<Object> costlist = cost.list();
+            transaction.commit();
+            return costlist;
+        }
+
+
+    }
+
+    @Override
+    public List<Object> getcategoryinfo(String email) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+
+        Query query3 = session.createQuery("select new Map(count(c.category) as count,c.category as category) from Cost c,Garden g , User  u where c.user.userID = u.userID and " +
+                "g.garden.gardenID = c.costID and u.userEmail =:email group by c.category");
+        query3.setParameter("email", email);
+
+
+        List<Object> costList = query3.list();
+        transaction.commit();
+        return costList;
+    }
+
+    @Override
+    public Boolean insertpwcode(String email, String code) {
+        try {
+            Session session = sessionFactory.openSession();
+            Transaction tx = session.beginTransaction();
+            Query query = session.createSQLQuery("update AppUser  a set a.resetCode=:code where a.userEmail=:email");
+            query.setParameter("email", email);
+            query.setParameter("code", code);
+            query.executeUpdate();
+            session.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public Boolean setpassword(String email, String newpw, String token) {
+
+        try {
+            if (token == null)
+                return false;
+            else {
+                Session session = sessionFactory.openSession();
+                Transaction transaction = session.beginTransaction();
+                Query query = session.createSQLQuery("update AppUser  a set a.userPassword=:newpw where a.userEmail =:email and a.resetCode =:token");
+                query.setParameter("email", email);
+                query.setParameter("newpw", newpw);
+                query.setParameter("token", token);
+                query.executeUpdate();
+                session.getTransaction().commit();
+                return true;
+            }
+
+        } catch (Exception e) {
+            System.out.println("HATA " + e.getMessage());
+            return false;
+        }
+
+    }
+
+    @Override
+    public List<Object> findAllgarden(int userID) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Query query = session.createQuery(
+                    "select distinct new Map( g.gardenID as gardenID,u.userID as user, g.gardenName as gardenName,gp.product.productName as productName ) from Garden g inner join  g.user u inner join g.gardenProduct gp where u.userID =:userID    ");
+
+
+            query.setParameter("userID", userID);
+            List costlist = query.getResultList();
+            transaction.commit();
+            return costlist;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            return null;
+        }
+    }
+
+    @Override
+    public List<Object> finaAllproduct(int userID) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Query query = session.createQuery(
+                    "select new Map( p.productID as productID,u.userID as user,p.productName as productName,sum(gp.totalproduction) as production,gp.garden.gardenName as gardenName ) from Product p" +
+                            " inner join p.gardenProduct gp inner join gp.user u where u.userID =:userID group by p.productID ,u.userID ,p.productName , gp.garden.gardenName ");
+
+
+            query.setParameter("userID", userID);
+            List costlist = query.getResultList();
+            transaction.commit();
+            return costlist;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            return null;
+        }
+    }
+
+    @Override
+    public List<Object> findAllcost(int userID) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Query query = session.createQuery(
+                    "select new Map(sum(c.fuel+c.seed+c.pesticide+c.chemicalfertilizers+c.organicfertilizers+c.irrigation+c.laborforce+c.machine)as totalcost,g.gardenName as gardenName,p.productName as productName,u.userID as user) from Cost c " +
+                            "inner join c.garden g  inner join c.product p inner join c.user u where u.userID =:userID group by  g.gardenName,p.productName,u.userID");
+
+
+            query.setParameter("userID", userID);
+            List costlist = query.getResultList();
+            transaction.commit();
+            return costlist;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            return null;
+        }
+    }
+
+    @Override
+    public Boolean newpassword(String email, String password) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        Query query = sessionFactory
+                .getCurrentSession()
+                .createSQLQuery("update  AppUser set userPassword=:password where userEmail=:email  ");
+        query.setParameter("email", email);
+        query.setParameter("password", password);
+        query.executeUpdate();
+        session.getTransaction().commit();
+        session.close();
+        return true;
+    }
+
+    @Override
+    public List<Object> userinfo(int userID) {
+        Session session = sessionFactory.openSession();
+        Transaction transaction = session.beginTransaction();
+        try {
+            Query query = session.createQuery(
+                    "select new Map( u.userID as userID, u.userName as userName,u.userEmail as userEmail,u.userPassword as userPassword) from AppUser u  where u.userID =:userID  ");
+
+
+            query.setParameter("userID", userID);
+            List costlist = query.getResultList();
+            transaction.commit();
+            return costlist;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+
+            return null;
+        }
+    }
 }

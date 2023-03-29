@@ -4,17 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Created by egulocak on 8.05.2020.
+ * Created by oguzhanaslan on 15.10.2020.
  */
+
 @Getter
 @Setter
+
 public class CustomUser {
+
     private long userID;
     private String userName;
-    private String userSurname;
-    private String userToken;
     private String userEmail;
-    private byte[] profilImageID;
+
+
 
 
 }

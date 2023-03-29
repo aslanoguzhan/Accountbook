@@ -1,7 +1,7 @@
 <%--
   Created by IntelliJ IDEA.
-  User: aturak
-  Date: 17.03.2020
+  User: oguzhanaslan
+  Date: 05.09.2020
   Time: 17:01
   To change this template use File | Settings | File Templates.
 --%>
@@ -11,6 +11,6 @@
     <title>$Title$</title>
   </head>
   <body>
-  $deneme$
+  $HOŞGELDİNİZ$
   </body>
 </html>

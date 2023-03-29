@@ -112,7 +112,7 @@
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc8</artifactId>
             <version>1.0</version>
-            <systemPath>C:/Users/TURAK/.m2/repository/com/oracle/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar</systemPath>
+            <systemPath>C:/Users/oguzhanaslan/.m2/repository/com/oracle/jdbc/ojdbc8/12.2.0.1/ojdbc8-12.2.0.1.jar</systemPath>
             <scope>system</scope>
         </dependency>
 
@@ -121,6 +121,7 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -175,6 +176,11 @@
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-core</artifactId>
             <version>5.4.1.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.thymeleaf</groupId>
+            <artifactId>thymeleaf</artifactId>
+            <version>2.1.4.RELEASE</version>
         </dependency>
     </dependencies>
 

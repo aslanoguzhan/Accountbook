@@ -1,33 +1,52 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
-       xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
        http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-    <context:component-scan base-package="com.spring.*" />
+    <context:component-scan base-package="com.spring.*"/>
 
-    <mvc:annotation-driven />
 
+
+    <mvc:annotation-driven/>
+
+    <!--<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">-->
+        <!--<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>-->
+        <!--<property name="url" value="jdbc:oracle:thin:@localhost:1521/xe"/>-->
+        <!--<property name="username" value="hr"/>-->
+        <!--<property name="password" value="1234"/>-->
+    <!--</bean>-->
     <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
-        <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
-        <property name="url" value="jdbc:oracle:thin:@localhost:1521:orcl"/>
-        <property name="username" value="system"/>
-        <property name="password" value="12345"/>
+    <property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>
+    <property name="url" value="jdbc:mysql://hesapdefterim.ciat9fxae95g.eu-west-3.rds.amazonaws.com:3306/hesapdefteri"/>
+    <property name="username" value="admin"/>
+    <property name="password" value="12345627"/>
     </bean>
+    <mvc:annotation-driven>
+        <mvc:message-converters register-defaults="false">
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <property name="objectMapper" ref="objectMapper"/>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
 
     <bean id="sessionFactory"
           class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
         <property name="hibernateProperties">
             <props>
-                <prop key="hibernate.dialect">org.hibernate.dialect.Oracle10gDialect</prop>
-                <prop key="hibernate.hbm2ddl.auto">create</prop>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL55Dialect</prop>
+                <prop key="hibernate.hbm2ddl.auto">update</prop>
                 <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.hbm2ddl.import_files">init.sql</prop>
                 <prop key="hibernate.dialect.storage_engine">innodb</prop>
                 <prop key="hibernate.enable_lazy_load_no_trans">true</prop>
+                <prop key="hibernate.c3p0.min_size">5</prop>
+                <prop key="hibernate.c3p0.max_size">20</prop>
+                <prop key="hibernate.c3p0.timeout">300</prop>
             </props>
         </property>
         <property name="packagesToScan" value="com.spring.model"/>
@@ -37,6 +56,57 @@
         <property name="sessionFactory" ref="sessionFactory"/>
     </bean>
 
-    <tx:annotation-driven transaction-manager="transactionManager" />
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 
+    <mvc:annotation-driven>
+
+
+        <mvc:message-converters register-defaults="false">
+
+
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+
+                <property name="objectMapper" ref="objectMapper"/>
+
+            </bean>
+
+        </mvc:message-converters>
+
+    </mvc:annotation-driven>
+
+
+    <bean class="org.springframework.mail.javamail.JavaMailSenderImpl" id="mailSender">
+
+        <property name="host" value="smtp.gmail.com"/>
+        <property name="protocol" value="smtp"/>
+        <property name="port" value="587"/>
+        <property name="username" value="cificidefteri@gmail.com"/>
+        <property name="password" value="hesapdefterim1405"/>
+        <property name="javaMailProperties">
+
+
+            <props>
+
+                <prop key="mail.smtp.auth">true</prop>
+                <prop key="mail.smtp.starttls.enable">true</prop>
+                <prop key="mail.smtp.debug">true</prop>
+                <prop key="mail.smtp.ssl.trust">smtp.gmail.com</prop>
+
+            </props>
+
+        </property>
+
+    </bean>
+
+
+    <bean class="com.fasterxml.jackson.databind.ObjectMapper" id="objectMapper">
+
+
+        <property name="dateFormat">
+
+            <bean class="java.text.SimpleDateFormat"></bean>
+
+        </property>
+
+    </bean>
 </beans>

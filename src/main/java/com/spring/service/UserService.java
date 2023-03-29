@@ -1,44 +1,39 @@
 package com.spring.service;
 
-import com.spring.model.AdminTK;
 import com.spring.model.AppUser;
+import com.spring.model.Cost;
 import com.spring.model.CustomUser;
-import com.spring.model.Review;
-import com.sun.corba.se.impl.oa.poa.AOMEntry;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by egulocak on 8.04.2020.
+ * Created by oguzhanaslan on 7.09.2020.
  */
 public interface UserService {
-    String checkUserType(AppUser user);
-    AppUser insertUser(AppUser user);
+    void insertUser(AppUser user);
     List<Object> listAllUsers();
     Boolean isUserExist(String email);
-    boolean checkStandardCredentials(String userEmail,String password);
-    CustomUser findUserByEmail(String userEmail,String tokenstatus);
-    Boolean checkUserCode(String email,long code);
+    List<AppUser>  checkStandardCredentials(String userEmail,String password);
+    Boolean checkUserCode(String email,String code);
     AppUser updateUserStatus(String email);
     Boolean isUserActive(String email);
-    Boolean isAdmin(AdminTK adminTK);
-    List<Review> getReview(String email);
     String changeusername(String email,String userName);
-    Long getreviewcount(String email,String password);
+    Long getCostcount(String email,String password);
     String changepassword(String email,String password,String newpw);
+    CustomUser findUserByEmail(String userEmail);
+    Boolean isUser(AppUser user);
+    List<Cost> getCost(String email);
+    List<Object> getCategorizecosts(String email,String category);
     List<Object> getcategoryinfo(String email);
-    List<Object> getcategorizedreviews(String email,String category);
+    Boolean insertpwcode(String email,String code);
+    Boolean setpassword(String email,String newpw,String token);
+    List<Object> findAllgarden(int userID);
+    List<Object> finaAllproduct(int userID);
+    List<Object> findAllcost(int userID);
+    Boolean newpassword(String email,String password);
+    List<Object>userinfo(int userID);
 
 
 
-
-
-
-    //....
-    //....
-    //....
-    //....
 
 }
